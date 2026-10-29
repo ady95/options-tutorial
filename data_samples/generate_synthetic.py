@@ -93,7 +93,7 @@ def main() -> None:
     p.add_argument("--days", type=int, default=5)
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--start", type=date.fromisoformat, default=date(2026, 1, 5))
-    p.add_argument("--f0", type=float, default=400.0, help="시작 선물가격(포인트)")
+    p.add_argument("--f0", type=float, default=965.0, help="시작 선물가격(포인트)")
     p.add_argument("--vol", type=float, default=0.18, help="연 변동성")
     p.add_argument("--out", type=Path, default=ROOT / "data_samples" / "synthetic")
     args = p.parse_args()

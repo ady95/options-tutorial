@@ -9,3 +9,4 @@ logs/
 *.db
 *.parquet
 models_store/
+.cache/

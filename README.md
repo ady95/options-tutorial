@@ -39,8 +39,8 @@ Live Data Mode(한국투자증권 실시간 시세)를 쓰려면 `.env.example`�
 | 장 | 주제 | 예제 | 상태 |
 |---|---|---|---|
 | 01 | 위클리옵션과 AI 자동매매 이해 | `examples/ch01` | ✅ |
-| 02 | 개발 환경과 한국투자증권 Open API | `examples/ch02` | 집필 중 |
-| 03 | 실시간 데이터 수집 | `examples/ch03` | 집필 중 |
+| 02 | 개발 환경과 한국투자증권 Open API | `examples/ch02` | ✅ |
+| 03 | 실시간 데이터 수집 | `examples/ch03` | ✅ |
 | 04 | 데이터 저장과 품질 검증 | `examples/ch04` | 집필 중 |
 | 05 | 이론가격·IV·Greeks | `examples/ch05` | ✅ |
 | 06 | 학습 데이터와 특징 | `examples/ch06` | 집필 중 |
