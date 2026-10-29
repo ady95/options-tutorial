@@ -2,6 +2,8 @@
 
 - 한 연결의 구독은 40건 이하로 제한한다(2026-10 실측: 42번째에서 OPSP0008 MAX SUBSCRIBE OVER).
 - 연결이 끊기면 재접속 후 같은 목록을 다시 구독한다.
+- control 큐에 (tr_id, 종목코드, 구독 여부)를 넣으면 연결을 유지한 채 구독을 바꾼다(11장 체인 이동).
+  subscriptions 목록도 호출한 쪽이 함께 고쳐 두어야 재접속할 때 바뀐 목록으로 다시 구독한다.
 - 모든 이벤트에 거래소 시각(exchange_time)과 수신 시각(received_time)을 함께 기록한다.
 """
 from __future__ import annotations
@@ -73,7 +75,7 @@ def subscribe_message(approval_key: str, tr_id: str, tr_key: str, subscribe: boo
 
 
 async def stream(approval_key: str, subscriptions: list[tuple[str, str]], mode: str = "real",
-                 max_retries: int = 5) -> AsyncIterator[dict]:
+                 max_retries: int = 5, control: asyncio.Queue | None = None) -> AsyncIterator[dict]:
     """(tr_id, 종목코드) 목록을 구독하고 이벤트를 차례로 내보낸다."""
     if len(subscriptions) > MAX_SUBSCRIPTIONS:
         raise ValueError(f"구독은 {MAX_SUBSCRIPTIONS}건 이하여야 합니다: {len(subscriptions)}건")
@@ -85,19 +87,31 @@ async def stream(approval_key: str, subscriptions: list[tuple[str, str]], mode: 
                     await ws.send(subscribe_message(approval_key, tr_id, key))
                     await asyncio.sleep(0.05)
                 retries = 0
-                async for msg in ws:
-                    if msg[0] in "01":
-                        for ev in parse_frame(msg):
-                            yield ev
-                        continue
-                    j = json.loads(msg)
-                    header, body = j.get("header", {}), j.get("body", {})
-                    if header.get("tr_id") == "PINGPONG":
-                        await ws.send(msg)               # 받은 그대로 돌려줘야 연결이 유지된다
-                    elif body.get("rt_cd") not in (None, "0"):
-                        yield {"type": "error", "tr_id": header.get("tr_id"), "code": header.get("tr_key"),
-                               "msg": f"{body.get('msg_cd')} {body.get('msg1')}",
-                               "received_time": datetime.now()}
+
+                async def pump() -> None:          # 구독 변경 요청을 보내는 작업
+                    while True:
+                        tr_id, key, on = await control.get()
+                        await ws.send(subscribe_message(approval_key, tr_id, key, on))
+                        await asyncio.sleep(0.05)
+
+                pumping = asyncio.create_task(pump()) if control is not None else None
+                try:
+                    async for msg in ws:
+                        if msg[0] in "01":
+                            for ev in parse_frame(msg):
+                                yield ev
+                            continue
+                        j = json.loads(msg)
+                        header, body = j.get("header", {}), j.get("body", {})
+                        if header.get("tr_id") == "PINGPONG":
+                            await ws.send(msg)               # 받은 그대로 돌려줘야 연결이 유지된다
+                        elif body.get("rt_cd") not in (None, "0"):
+                            yield {"type": "error", "tr_id": header.get("tr_id"), "code": header.get("tr_key"),
+                                   "msg": f"{body.get('msg_cd')} {body.get('msg1')}",
+                                   "received_time": datetime.now()}
+                finally:
+                    if pumping is not None:
+                        pumping.cancel()
         except (OSError, websockets.exceptions.WebSocketException) as e:
             retries += 1
             if retries > max_retries:

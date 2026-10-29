@@ -11,3 +11,5 @@ logs/
 models_store/
 .cache/
 data/
+runs/
+KILL

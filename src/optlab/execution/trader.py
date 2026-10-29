@@ -99,11 +99,19 @@ class Trader:
         self.rejects = 0
         self.order_times: list[pd.Timestamp] = []
         self.now: pd.Timestamp | None = None
+        self.sink = None                         # 감사 기록(11장). 모든 로그와 구조화 기록을 받는 함수
 
     # ── 기록 ─────────────────────────────────────────────
     def _log(self, kind: str, detail: str = "") -> None:
-        self.log.append({"time": self.now, "kind": kind, "mode": self.mode.value,
-                         "phase": self.phase.value, "detail": detail})
+        row = {"time": self.now, "kind": kind, "mode": self.mode.value, "phase": self.phase.value, "detail": detail}
+        self.log.append(row)
+        if self.sink:
+            self.sink(row)
+
+    def _record(self, kind: str, **data) -> None:
+        """재시작 복구에 필요한 구조화 기록(INTENT, TRADE). 화면 로그에는 남기지 않는다."""
+        if self.sink:
+            self.sink({"time": self.now, "kind": kind, **data})
 
     def _go(self, to: Phase, why: str = "") -> None:
         if to not in ALLOWED[self.phase]:
@@ -172,6 +180,7 @@ class Trader:
         self.pos = {"signal_time": ts, "code": sig.code, "cp": sig.cp, "strike": sig.strike, "sig_ask": sig.entry,
                     "delta": sig.delta, "exp_pnl": sig.exp_pnl, "exit_fills": [], "n_exit_orders": 0}
         cid = f"{ts:%Y%m%d-%H%M%S}-{sig.code}-B"
+        self._record("INTENT", client_id=cid, pos={k: v for k, v in self.pos.items() if k != "exit_fills"})
         if self._send(cid, "ENTRY", "BUY", sig.code, self.cfg.qty, limit, self.cfg.entry_timeout_sec):
             self._go(Phase.ORDER_SUBMITTED, cid)
         else:
@@ -381,6 +390,7 @@ class Trader:
             "sig_ask": p["sig_ask"], "entry_px": p["entry_px"], "exit_bid": p.get("exit_bid"), "exit_px": exit_px,
             "n_exit_orders": p["n_exit_orders"], "exit_reason": p.get("exit_reason", status), "fees": fees,
             "pnl_pt": pnl, "pnl_krw": pnl * MULTIPLIER_KRW, "status": status})
+        self._record("TRADE", trade=self.trades[-1])
         self.pos = None
         if self.phase == Phase.EXIT_ORDER:
             self._go(Phase.FLAT, f"{pnl * MULTIPLIER_KRW:+,.0f}원")

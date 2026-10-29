@@ -34,3 +34,9 @@ risk:                     # 10장 독립 위험관리(optlab.risk.limits.RiskCon
   flatten_by: "15:10"     # 이 시각에 보유 포지션 강제 청산
   skip_expiry_day: true   # 만기일 신규 진입 금지(00-2절 안전 원칙). 만기일 기록 실습은 스크립트 옵션으로 허용
   kill_file: KILL         # 실행 폴더에 이 파일이 생기면 Kill Switch
+run:                      # 11장 실시간 자동 모의매매(examples/ch11/paper_trade.py)
+  product: KOSPI200_WEEKLY_THU   # Live 구독 상품(KOSPI200_WEEKLY_MON도 가능)
+  chain_width: 9          # ATM ± N 행사가 옵션 호가 구독: 선물 2건 + 옵션 38건 = 40건(한 연결 한도)
+  recenter_steps: 2       # ATM이 가운데 행사가에서 N칸 이상 멀어지면 구독 체인을 옮긴다
+  decide_delay_sec: 2     # 매분 hh:mm:02에 결정(직전 분봉의 마지막 체결이 도착할 시간)
+  run_dir: runs           # 감사 기록(audit.jsonl), 브로커 상태(broker.json), Live 수신 기록(ticks.db)

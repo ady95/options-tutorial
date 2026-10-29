@@ -25,6 +25,6 @@ python -m pytest tests/test_risk.py -v
 - `src/optlab/risk/health.py`: 시세 건강 상태(HealthMonitor), Kill Switch
 - `src/optlab/execution/trader.py`: 운영 상태(Mode)·포지션 단계(Phase) 상태기계, 멱등 주문, 대조(reconcile)
 - `src/optlab/execution/paper.py`: 가상 브로커(장애 주입 가능)
-- `src/optlab/execution/replay.py`: 기록 재생 스케줄러
+- `src/optlab/execution/replay.py`·`scheduler.py`: 기록 재생과 시각 순서 스케줄러(11장 실시간 파이프라인과 공용)
 
 설정: `configs/default.yaml`의 `risk` 절. Kill Switch는 실행 폴더에 `KILL` 파일을 만들면 걸립니다.
