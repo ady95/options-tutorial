@@ -59,7 +59,8 @@ def live_setup(args, run_cfg: dict, run_dir: Path):
     inst = master.load_master(MASTER_PATH)
     fut = master.nearest_futures(inst)
     product = run_cfg["product"]
-    series = master.series_list(inst, product)[0]
+    series = next(s for s in master.series_list(inst, product)          # 지난 만기물은 건너뛴다
+                  if master.weekly_expiry(product, s) >= date.today())
     atm = float(kis.index_price("2001")["bstp_nmix_prpr"])
     store = EventStore(run_dir / "ticks.db")
     store.add_instrument(fut.code, fut.product, None, fut.series, None)
@@ -107,7 +108,7 @@ def main() -> None:
     p.add_argument("--allow-expiry-day", action="store_true", help="만기일 신규 진입 허용(설정 기본값은 금지)")
     p.add_argument("--log", action="store_true", help="PHASE 전이까지 모두 출력")
     args = p.parse_args()
-    sys.stdout.reconfigure(line_buffering=True)
+    sys.stdout.reconfigure(encoding="utf-8", line_buffering=True)  # 작업 스케줄러로 파일에 남길 때도 깨지지 않게
     warnings.filterwarnings("ignore", category=UserWarning)
     pd.set_option("display.width", 200)
 
