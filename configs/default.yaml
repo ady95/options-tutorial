@@ -1,0 +1,14 @@
+# 실행 모드: replay | live  (live도 주문은 가상체결 엔진으로만 처리)
+mode: replay
+data_dir: data_samples/synthetic
+risk_free_rate: 0.03
+strategy:
+  horizons_min: [5, 15, 30]
+  atm_range: 3            # ATM ± N 행사가만 후보
+  min_edge_points: 0.05   # 기대순손익 최소 우위(포인트)
+risk:
+  max_contracts: 1
+  max_premium_krw: 2000000
+  daily_loss_limit_krw: 1000000
+  max_quote_age_sec: 3
+  skip_expiry_day: true
