@@ -13,6 +13,7 @@ dependencies = [
     "websockets>=12",
     "python-dotenv>=1.0",
     "pyyaml>=6.0",
+    "pyarrow>=14",
 ]
 
 [project.optional-dependencies]

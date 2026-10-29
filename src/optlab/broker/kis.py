@@ -20,9 +20,10 @@ DOMAINS = {
     "real": "https://openapi.koreainvestment.com:9443",
     "paper": "https://openapivts.koreainvestment.com:29443",
 }
-# 모의투자 도메인은 초당 호출 한도가 낮다(2026-10 실측: 연속 호출 시 "초당 거래건수를 초과").
-MIN_INTERVAL_SEC = {"real": 0.06, "paper": 0.55}
-TOKEN_CACHE = Path(".cache") / "kis_token_{mode}.json"
+# 초당 호출 한도(2026-10 실측: 실전 0.06초 간격에서도 EGW00201 "초당 거래건수를 초과" 발생, 모의는 더 낮음)
+MIN_INTERVAL_SEC = {"real": 0.1, "paper": 0.55}
+# 접근토큰은 1분에 1회만 발급된다(2026-10 실측: EGW00133). 실행 폴더와 무관하게 재사용하도록 홈 폴더에 캐시한다.
+TOKEN_CACHE = Path.home() / ".cache" / "optlab" / "kis_token_{mode}.json"
 
 
 class KisError(RuntimeError):
@@ -70,7 +71,7 @@ class KisClient:
         if "access_token" not in j:
             raise KisError(f"토큰 발급 실패: {j.get('error_code')} {j.get('error_description')}")
         self._token = j["access_token"]
-        cache.parent.mkdir(exist_ok=True)
+        cache.parent.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps({
             "token": self._token, "app_key_tail": self.cfg.app_key[-4:],
             "expires_at": time.time() + int(j.get("expires_in", 86400))}), encoding="utf-8")
@@ -87,18 +88,24 @@ class KisClient:
         return key
 
     # ── 공통 GET ────────────────────────────────────────
-    def get(self, path: str, tr_id: str, params: dict, output: str = "output") -> dict:
-        wait = MIN_INTERVAL_SEC[self.cfg.mode] - (time.time() - self._last_call)
-        if wait > 0:
-            time.sleep(wait)
+    def get(self, path: str, tr_id: str, params: dict, output: str = "output", retries: int = 5) -> dict:
         headers = {
             "authorization": f"Bearer {self.access_token()}",
             "appkey": self.cfg.app_key, "appsecret": self.cfg.app_secret,
             "tr_id": tr_id, "custtype": "P",
         }
-        r = self.session.get(self.base + path, headers=headers, params=params, timeout=10)
-        self._last_call = time.time()
-        j = r.json()
+        for attempt in range(retries + 1):
+            wait = MIN_INTERVAL_SEC[self.cfg.mode] - (time.time() - self._last_call)
+            if wait > 0:
+                time.sleep(wait)
+            r = self.session.get(self.base + path, headers=headers, params=params, timeout=10)
+            self._last_call = time.time()
+            j = r.json()
+            # 초당 호출 한도 초과(EGW00201)는 잠시 쉬었다가 다시 시도한다
+            if j.get("msg_cd") == "EGW00201" and attempt < retries:
+                time.sleep(0.5 * (attempt + 1))
+                continue
+            break
         if j.get("rt_cd") != "0":
             raise KisError(f"{tr_id} 실패: {j.get('msg_cd')} {j.get('msg1', '').strip()}")
         data = j.get(output)

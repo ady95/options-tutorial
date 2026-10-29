@@ -63,3 +63,13 @@ def test_weekly_expiry_dates():
     assert master.weekly_expiry("KOSPI200_WEEKLY_THU", "2610W5") == date(2026, 10, 29)
     assert master.weekly_expiry("KOSPI200_WEEKLY_THU", "2611W1") == date(2026, 11, 5)
     assert master.weekly_expiry("KOSPI200_WEEKLY_MON", "2611W1") == date(2026, 11, 2)
+
+
+def test_front_month_schedule():
+    from datetime import date
+    from optlab.market_data.history import front_month_schedule, quarterly_expiry
+    assert quarterly_expiry(2026, 9) == date(2026, 9, 10)
+    sched = front_month_schedule(date(2026, 1, 5), date(2026, 10, 29))
+    assert [c for c, _, _ in sched] == ["A01603", "A01606", "A01609", "A01612"]
+    assert sched[2] == ("A01609", date(2026, 6, 12), date(2026, 9, 10))
+    assert sched[3][1] == date(2026, 9, 11)
