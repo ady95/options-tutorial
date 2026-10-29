@@ -28,10 +28,11 @@ def main() -> None:
 
     print("\n만기 기초지수별 손익(원)")
     print(f"{'지수':>8} {'콜 매수':>14} {'풋 매수':>14}")
-    for s in range(int(args.strike) - 20, int(args.strike) + 25, 5):
+    for step in range(-20, 25, 5):
+        s = args.strike + step
         c = payoff_at_expiry(s, args.strike, args.call, True)
         q = payoff_at_expiry(s, args.strike, args.put, False)
-        print(f"{s:>8} {c:>14,} {q:>14,}")
+        print(f"{s:>8.1f} {c:>14,} {q:>14,}")
 
 
 if __name__ == "__main__":
