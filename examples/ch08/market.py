@@ -26,7 +26,7 @@ BARS_PATH = ROOT / "data" / "futures_1min_continuous.parquet"
 class LiveDB:
     def __init__(self, db: Path):
         d = store.load(db)
-        self.quotes, self.inst = d["quotes"], d["instruments"]
+        self.quotes, self.inst, self.trades = d["quotes"], d["instruments"], d["trades"]
         opts = self.inst.dropna(subset=["strike"])
         self.product, self.series = opts["product"].iloc[0], opts["series"].iloc[0]
         self.expiry = expiry_datetime(weekly_expiry(self.product, self.series))

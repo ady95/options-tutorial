@@ -14,6 +14,12 @@ strategy:                 # 8장 시그널 엔진(optlab.strategy.signal.Strateg
   iv_weights: [0.25, 0.5, 0.25]
   direction_weight: 0.5   # 상승확률 반영 비율(0이면 방향 무시)
   exit_cutoff: "15:15"    # 청산 예정 시각이 이보다 늦으면 진입하지 않음
+backtest:                 # 9장 이벤트 백테스트(optlab.backtest.engine.BacktestConfig). horizon·수수료는 strategy 값을 쓴다
+  qty: 1                  # 신호 하나당 계약 수
+  latency_sec: 0.5        # 결정 → 거래소 도착(가정치)
+  entry_timeout_sec: 5    # 진입 주문 미체결 잔량 취소까지
+  entry_ticks: 0          # 매수 지정가 = 매도호가 + N틱
+  exit_timeout_sec: 5     # 청산 주문 재호가 간격
 risk:
   max_contracts: 1
   max_premium_krw: 2000000
