@@ -2,10 +2,18 @@
 mode: replay
 data_dir: data_samples/synthetic
 risk_free_rate: 0.03
-strategy:
-  horizons_min: [5, 15, 30]
+strategy:                 # 8장 시그널 엔진(optlab.strategy.signal.StrategyConfig)
+  horizon_min: 15         # 보유 기간(분): 5 | 15 | 30
   atm_range: 3            # ATM ± N 행사가만 후보
-  min_edge_points: 0.05   # 기대순손익 최소 우위(포인트)
+  max_age_sec: 10         # 마지막 호가 이후 경과 시간 상한(초)
+  max_spread_ratio: 0.2   # (매도-매수)/중간가 상한
+  min_premium: 0.2        # 중간가 하한(포인트)
+  fee_rate: 0.001         # 수수료(거래대금 대비, 한쪽) — 가정치. 자신의 계좌 조건으로 바꾼다
+  min_edge_points: 0.05   # 기대순손익 최소 우위(포인트) = 위험완충
+  iv_shocks: [-0.1, 0.0, 0.1]
+  iv_weights: [0.25, 0.5, 0.25]
+  direction_weight: 0.5   # 상승확률 반영 비율(0이면 방향 무시)
+  exit_cutoff: "15:15"    # 청산 예정 시각이 이보다 늦으면 진입하지 않음
 risk:
   max_contracts: 1
   max_premium_krw: 2000000

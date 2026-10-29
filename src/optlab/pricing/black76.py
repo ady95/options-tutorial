@@ -102,3 +102,24 @@ def implied_vol(
         else:
             lo = mid
     return 0.5 * (lo + hi)
+
+
+def price_array(F, K: float, T: float, r: float, sigma, is_call: bool):
+    """price()의 numpy 벡터 버전. F와 sigma에 배열을 넣어 시나리오 수천 개를 한 번에 계산한다."""
+    import numpy as np
+    from scipy.special import ndtr
+
+    F = np.asarray(F, dtype=float)
+    sigma = np.asarray(sigma, dtype=float)
+    df = math.exp(-r * T) if T > 0 else 1.0
+    intrinsic = np.maximum(F - K, 0.0) if is_call else np.maximum(K - F, 0.0)
+    if T <= 0:
+        return df * intrinsic * np.ones_like(sigma)
+    vst = np.maximum(sigma, 1e-12) * math.sqrt(T)
+    d1 = (np.log(F / K) + 0.5 * vst * vst) / vst
+    d2 = d1 - vst
+    if is_call:
+        out = df * (F * ndtr(d1) - K * ndtr(d2))
+    else:
+        out = df * (K * ndtr(-d2) - F * ndtr(-d1))
+    return np.where(sigma > 0, out, df * intrinsic)

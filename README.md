@@ -45,7 +45,7 @@ Live Data Mode(한국투자증권 실시간 시세)를 쓰려면 `.env.example`�
 | 05 | 이론가격·IV·Greeks | `examples/ch05` | ✅ |
 | 06 | 학습 데이터와 특징 | `examples/ch06` | ✅ |
 | 07 | LightGBM 단기 방향·변동폭 예측 | `examples/ch07` | ✅ |
-| 08 | 기대손익과 매매신호 | `examples/ch08` | 집필 중 |
+| 08 | 기대손익과 매매신호 | `examples/ch08` | ✅ |
 | 09 | 호가 기반 이벤트 백테스트 | `examples/ch09` | 집필 중 |
 | 10 | 위험관리 엔진과 주문 상태관리 | `examples/ch10` | 집필 중 |
 | 11 | 실시간 자동 모의매매 시스템 | `examples/ch11` | 집필 중 |
