@@ -72,6 +72,7 @@ class Signal:
     p_win: float | None = None
     forecast_vol: float | None = None
     atm_iv: float | None = None
+    delta: float | None = None   # 선택한 옵션의 델타(10장 순델타 한도)
     table: pd.DataFrame = field(default_factory=pd.DataFrame, repr=False)
 
 
@@ -173,9 +174,10 @@ def decide(chain: pd.DataFrame, F: float, now: datetime, expiry: datetime,
         return Signal(now, "HOLD", "NO_EDGE", exp_pnl=best["exp_pnl"], net_edge=best["net"], **base)
     action = "CALL_BUY" if best["cp"] == "C" else "PUT_BUY"
     reason = f"EDGE {best['net']:.2f}pt (예측 변동성 {fvol:.1%} vs IV {best['iv']:.1%})"
+    delta = black76.greeks(F, float(best["strike"]), T0, cfg.risk_free, float(best["iv"]), best["cp"] == "C").delta
     return Signal(now, action, reason, code=best["code"], cp=best["cp"], strike=float(best["strike"]),
                   entry=float(best["ask"]), exp_pnl=float(best["exp_pnl"]), net_edge=float(best["net"]),
-                  p_win=float(best["p_win"]), **base)
+                  p_win=float(best["p_win"]), delta=delta, **base)
 
 
 def chain_at(quotes: pd.DataFrame, instruments: pd.DataFrame, ts: pd.Timestamp) -> pd.DataFrame:

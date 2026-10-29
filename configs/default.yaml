@@ -20,9 +20,17 @@ backtest:                 # 9장 이벤트 백테스트(optlab.backtest.engine.B
   entry_timeout_sec: 5    # 진입 주문 미체결 잔량 취소까지
   entry_ticks: 0          # 매수 지정가 = 매도호가 + N틱
   exit_timeout_sec: 5     # 청산 주문 재호가 간격
-risk:
-  max_contracts: 1
-  max_premium_krw: 2000000
-  daily_loss_limit_krw: 1000000
-  max_quote_age_sec: 3
-  skip_expiry_day: true
+risk:                     # 10장 독립 위험관리(optlab.risk.limits.RiskConfig). AI 결정과 무관하게 강제
+  max_contracts: 1        # 보유 + 미체결 매수 수량 합계 상한
+  max_premium_krw: 2000000  # 주문 1건 프리미엄(지정가 × 수량 × 250,000원) 상한
+  daily_loss_limit_krw: 1000000  # 당일 손실(실현 + 평가)이 이만큼이면 RISK_STOP
+  max_net_delta: 1.0      # |Σ 델타 × 계약 수| 상한
+  max_orders_per_min: 6   # 최근 60초 주문 수 상한(폭주 방지)
+  max_rejects: 3          # 연속 주문 거부가 이만큼이면 RISK_STOP
+  max_quote_age_sec: 3    # 수신 지연 상한(04-2절) → DATA_STALE
+  heartbeat_sec: 5        # 선물 메시지가 이만큼 끊기면 DATA_STALE
+  recover_sec: 10         # DATA_STALE 해제까지 연속 정상 시간
+  no_entry_after: "15:00" # 이후 신규 진입 금지
+  flatten_by: "15:10"     # 이 시각에 보유 포지션 강제 청산
+  skip_expiry_day: true   # 만기일 신규 진입 금지(00-2절 안전 원칙). 만기일 기록 실습은 스크립트 옵션으로 허용
+  kill_file: KILL         # 실행 폴더에 이 파일이 생기면 Kill Switch
