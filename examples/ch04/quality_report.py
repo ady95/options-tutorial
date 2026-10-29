@@ -55,6 +55,11 @@ def main() -> None:
         print(inv["kind"].value_counts().to_dict(), f"/ 역전이 있었던 시점 {inv['time'].nunique():,}개 "
               f"({inv['time'].nunique() / max(n_snap, 1):.1%})")
         print(inv.drop_duplicates(["cp", "rich_strike", "kind"]).head(6).to_string(index=False))
+        # 오래된 호가가 만든 역전을 빼면 얼마나 남나
+        for lim in (60, 10):
+            fresh = quality.strike_inversions(snap[snap["age"] <= lim])
+            share = fresh["time"].nunique() / max(n_snap, 1) if len(fresh) else 0.0
+            print(f"  호가 age <= {lim}초만 비교: 역전 시점 {share:.1%}")
 
     st = quality.stale_trades(t, snap)
     print("\n== 5. 마지막 체결가가 현재 호가 범위 밖")

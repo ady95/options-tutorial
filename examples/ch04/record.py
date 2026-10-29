@@ -71,6 +71,8 @@ async def record_replay(args, store: EventStore) -> None:
         store.add_instrument(synthetic_code(q.cp, q.strike), "SYNTHETIC", q.cp, "SYN", q.strike)
     n = 0
     async for ev in src.stream(speed=0):
+        # 최대 속도로 재생하므로 실제 수신 시각은 의미가 없다 → 합성 데이터의 시각을 수신 시각으로 기록
+        ev["received_time"] = ev["exchange_time"]
         store.add(ev)
         if ev["tr_id"] == "REPLAY_FUT":
             n += 1
