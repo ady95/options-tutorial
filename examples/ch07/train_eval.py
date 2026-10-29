@@ -24,6 +24,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from optlab.features.build import FEATURES, HORIZONS, add_labels, build_features, time_split  # noqa: E402
 from optlab.models.evaluate import calibration_table, classification_report, regression_report  # noqa: E402
+from optlab.models.forecast import interval_coverage  # noqa: E402
 
 LGB_PARAMS = dict(n_estimators=2000, learning_rate=0.02, num_leaves=15, min_child_samples=200,
                   subsample=0.8, subsample_freq=1, colsample_bytree=0.8, reg_lambda=1.0, verbose=-1)
@@ -66,6 +67,7 @@ def main() -> None:
             rows.append({"h": h, "model": name, **classification_report(c[y].values, prob)})
         if h == 15:
             calib = calibration_table(c[y].values, res["LightGBM"])
+            calib_lr = calibration_table(c[y].values, res["로지스틱 회귀"])
             imp = pd.Series(clf.booster_.feature_importance("gain"), index=FEATURES).sort_values(ascending=False)
             best_iter = clf.best_iteration_
 
@@ -73,10 +75,12 @@ def main() -> None:
     print(pd.DataFrame(rows).round(4).to_string(index=False))
     print(f"\n== LightGBM 15분 확률 보정 (조기 종료 반복 {best_iter})")
     print(calib.round(4).to_string())
+    print("\n== 로지스틱 회귀 15분 확률 보정")
+    print(calib_lr.round(4).to_string())
     print("\n== 15분 특성 중요도(gain) 상위 8")
     print((imp / imp.sum()).head(8).round(3).to_string())
 
-    print("\n== 변동폭 예측: |h분 수익률| 중앙값(q=0.5) — 테스트 기간")
+    print("\n== 변동폭 예측: |h분 수익률| 중앙값(mae·corr)과 90% 분위수 커버리지 — 테스트 기간")
     reg_rows = []
     for h in HORIZONS:
         y = f"y_absret_{h}"
@@ -85,8 +89,13 @@ def main() -> None:
         naive = c[f"rv_{h}"] * 0.6745     # 최근 h분 실현변동성 × 정규분포 |Z|의 중앙값
         reg = lgb.LGBMRegressor(objective="quantile", alpha=0.5, random_state=args.seed, **LGB_PARAMS)
         reg.fit(X(a), a[y], eval_set=[(X(b), b[y])], callbacks=[lgb.early_stopping(100, verbose=False)])
-        reg_rows.append({"h": h, "model": "최근 RV 기반 정규근사", **regression_report(c[y].values, naive.values)})
-        reg_rows.append({"h": h, "model": "LightGBM 분위수(0.5)", **regression_report(c[y].values, reg.predict(X(c)))})
+        q90 = lgb.LGBMRegressor(objective="quantile", alpha=0.9, random_state=args.seed, **LGB_PARAMS)
+        q90.fit(X(a), a[y], eval_set=[(X(b), b[y])], callbacks=[lgb.early_stopping(100, verbose=False)])
+        naive90 = c[f"rv_{h}"] * 1.645                 # 정규분포 |Z|의 90% 분위수
+        reg_rows.append({"h": h, "model": "최근 RV 기반 정규근사", **regression_report(c[y].values, naive.values),
+                         "cover90": interval_coverage(c[y].values, naive90.values)})
+        reg_rows.append({"h": h, "model": "LightGBM 분위수", **regression_report(c[y].values, reg.predict(X(c))),
+                         "cover90": interval_coverage(c[y].values, q90.predict(X(c)))})
     out = pd.DataFrame(reg_rows)
     out["mae"] = out["mae"] * 1e4    # bp 단위
     print(out.rename(columns={"mae": "mae(bp)"}).round(3).to_string(index=False))

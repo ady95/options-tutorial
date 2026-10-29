@@ -41,10 +41,10 @@ Live Data Mode(한국투자증권 실시간 시세)를 쓰려면 `.env.example`�
 | 01 | 위클리옵션과 AI 자동매매 이해 | `examples/ch01` | ✅ |
 | 02 | 개발 환경과 한국투자증권 Open API | `examples/ch02` | ✅ |
 | 03 | 실시간 데이터 수집 | `examples/ch03` | ✅ |
-| 04 | 데이터 저장과 품질 검증 | `examples/ch04` | 집필 중 |
+| 04 | 데이터 저장과 품질 검증 | `examples/ch04` | ✅ |
 | 05 | 이론가격·IV·Greeks | `examples/ch05` | ✅ |
-| 06 | 학습 데이터와 특징 | `examples/ch06` | 집필 중 |
-| 07 | LightGBM 단기 방향·변동폭 예측 | `examples/ch07` | 집필 중 |
+| 06 | 학습 데이터와 특징 | `examples/ch06` | ✅ |
+| 07 | LightGBM 단기 방향·변동폭 예측 | `examples/ch07` | ✅ |
 | 08 | 기대손익과 매매신호 | `examples/ch08` | 집필 중 |
 | 09 | 호가 기반 이벤트 백테스트 | `examples/ch09` | 집필 중 |
 | 10 | 위험관리 엔진과 주문 상태관리 | `examples/ch10` | 집필 중 |
