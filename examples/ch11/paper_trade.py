@@ -189,7 +189,7 @@ def main() -> None:
             trader._log("RESTORE_SKIPPED", "감사 기록과 브로커 기록을 보지 않고 빈 상태로 시작")
         else:
             restore(trader, broker, records, start)
-    print(f"[{label}] 실행 폴더 {run_dir}")
+    print(f"[{label}] 실행 기록 폴더 {run_dir}")
 
     sched = Scheduler(trader, broker, decide_fn, decisions, start=start)
     try:

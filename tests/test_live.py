@@ -185,3 +185,11 @@ def test_chain_tracker_moves_after_two_strikes_and_keeps_held_code():
     assert [x[1] for x in sent if x[2]] == ["C937.5"]                   # 한도 5건: ATM에 가까운 937.5만 추가
     assert len(subs) == 5 and ("H0IOASP0", "C950") in subs
     assert t.log[-1][0] == "RESUBSCRIBE"
+
+
+def test_restore_keeps_daily_stop_latched():
+    # RISK_STOP이 걸린 날 다시 켜도 풀리지 않는다
+    t, b = make()
+    restore(t, b, [{"time": "2026-10-29T10:28:14", "kind": "MODE", "mode": "RISK_STOP"}], T0)
+    t.tick(T0 + pd.Timedelta(seconds=1))
+    assert t.mode.value == "RISK_STOP" and not t.wants_signal()

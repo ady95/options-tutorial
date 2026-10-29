@@ -31,7 +31,7 @@ python -m pytest tests/test_live.py -v
 | `--no-restore` | (비교용) 복구 없이 재시작 — 하면 안 되는 방법 |
 | `--allow-expiry-day` | 만기일 신규 진입 허용(설정 기본값은 금지) |
 
-실행 폴더(`runs/...`)에 남는 것
+실행 기록 폴더(`runs/...`)에 남는 것
 - `audit.jsonl`: 감사 기록. 상태기계의 모든 기록 + 진입 의도(INTENT)·확정 거래(TRADE). 한 줄 JSON, 덧붙여 쓰기만 함
 - `broker.json`: 가상 브로커 상태(주문·체결·잔고). 재시작 대조의 기준
 - `ticks.db`: Live에서 받은 시세 그대로(04장 형식). 12장 분석과 Replay 재현에 쓴다
