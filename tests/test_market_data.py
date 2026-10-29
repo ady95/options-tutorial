@@ -56,3 +56,10 @@ def test_subscription_limit():
     import asyncio
     with pytest.raises(ValueError):
         asyncio.run(run())
+
+
+def test_weekly_expiry_dates():
+    from datetime import date
+    assert master.weekly_expiry("KOSPI200_WEEKLY_THU", "2610W5") == date(2026, 10, 29)
+    assert master.weekly_expiry("KOSPI200_WEEKLY_THU", "2611W1") == date(2026, 11, 5)
+    assert master.weekly_expiry("KOSPI200_WEEKLY_MON", "2611W1") == date(2026, 11, 2)

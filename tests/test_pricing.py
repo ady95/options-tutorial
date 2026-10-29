@@ -45,3 +45,9 @@ def test_spec_helpers():
     assert round_to_tick(12.33, "up") == 12.35
     assert round_to_tick(12.33, "down") == 12.30
     assert round_to_tick(3.456) == 3.46
+
+
+def test_implied_forward_recovers_F():
+    c = black76.price(960.0, 950.0, T, R, 0.3, True)
+    p = black76.price(960.0, 950.0, T, R, 0.3, False)
+    assert black76.implied_forward(950.0, c, p, T, R) == pytest.approx(960.0, abs=1e-9)

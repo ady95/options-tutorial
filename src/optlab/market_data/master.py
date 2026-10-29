@@ -8,6 +8,7 @@ from __future__ import annotations
 import io
 import zipfile
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 
 import requests
@@ -72,6 +73,18 @@ def nearest_futures(instruments: list[Instrument]) -> Instrument:
 def series_list(instruments: list[Instrument], product: str) -> list[str]:
     """상품의 만기 시리즈 목록. 'YYMMWn' 형식은 문자열 정렬이 곧 만기순이다."""
     return sorted({i.series for i in instruments if i.product == product})
+
+
+def weekly_expiry(product: str, series: str) -> date:
+    """위클리 시리즈 'YYMMWn'의 만기일 = 그 달 n번째 목요일(월요일 위클리는 월요일).
+
+    2026-10 마스터로 확인: 목 2610W5 → 10/29, 목 2611W1 → 11/5, 월 2611W1 → 11/2.
+    """
+    yy, mm, n = int(series[:2]), int(series[2:4]), int(series[5])
+    weekday = 0 if product == "KOSPI200_WEEKLY_MON" else 3
+    first = date(2000 + yy, mm, 1)
+    first_hit = first + timedelta(days=(weekday - first.weekday()) % 7)
+    return first_hit + timedelta(weeks=n - 1)
 
 
 def option_chain(instruments: list[Instrument], product: str, series: str,

@@ -63,6 +63,11 @@ def greeks(F: float, K: float, T: float, r: float, sigma: float, is_call: bool) 
     return Greeks(delta=delta, gamma=gamma, theta=theta_year / 365.0, vega=vega / 100.0)
 
 
+def implied_forward(K: float, call_mid: float, put_mid: float, T: float, r: float) -> float:
+    """콜·풋 패리티 C - P = e^{-rT}(F - K)로 만기까지의 내재 선도가격 F를 구한다."""
+    return K + math.exp(r * T) * (call_mid - put_mid)
+
+
 def implied_vol(
     market_price: float,
     F: float,
