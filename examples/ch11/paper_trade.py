@@ -171,7 +171,11 @@ def main() -> None:
         wall = pd.Timestamp.now
         label = "Live"
 
-    broker = PaperBroker.load(state_path) if args.resume else PaperBroker(bcfg.latency_sec, state_path)
+    if args.resume:
+        broker = PaperBroker.load(state_path)
+    else:
+        broker = PaperBroker(bcfg.latency_sec, state_path)
+        broker._save(start)        # 주문 전에 죽어도 --resume으로 이어 갈 수 있게 빈 상태부터 남긴다
     lost = 0
     if args.resume and mode == "replay":
         lost = catch_up(broker, src.quotes, start)

@@ -81,7 +81,7 @@ def implied_forward(chain: pd.DataFrame, T: float, r: float, max_spread: float =
     c = chain[(chain["bid1"] > 0) & (chain["ask1"] > 0)].assign(mid=lambda x: (x.bid1 + x.ask1) / 2)
     c = c.assign(sr=(c.ask1 - c.bid1) / c.mid)
     pair = c.pivot_table(index="strike", columns="cp", values=["mid", "sr"]).dropna()
-    if pair.empty:
+    if pair.empty or pair.columns.get_level_values("cp").nunique() < 2:   # 장 시작 전처럼 한쪽 호가만 있을 때
         return None
     tight = pair[(pair[("sr", "C")] <= max_spread) & (pair[("sr", "P")] <= max_spread)]
     use = tight if len(tight) else pair
