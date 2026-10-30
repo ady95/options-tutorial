@@ -87,6 +87,9 @@ def live_setup(args, run_cfg: dict, run_dir: Path):
     control: asyncio.Queue = asyncio.Queue()
     feed = pipeline.live_feed(realtime.stream(kis.approval_key(), subs, control=control), store)
     print(f"[Live] {product} {series}(만기 {expiry:%m-%d}), ATM≈{atm:.2f}, 구독 {len(subs)}건, 선물 {fut.code}")
+    atm_call = universe[(universe["strike"] == center) & (universe["cp"] == "C")]["code"].iloc[0]
+    px = kis.futopt_price(atm_call)          # 거래가 없는 만기물이면 호가가 거의 오지 않는다(11-4절)
+    print(f"[Live] ATM 콜 {atm_call} 당일 거래량 {int(px['acml_vol']):,}, 미결제약정 {int(px['hts_otst_stpl_qty']):,}")
     return feed, universe, fut.code, expiry, prefix_fn, store, tracker, control, subs
 
 
