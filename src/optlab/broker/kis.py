@@ -120,6 +120,12 @@ class KisClient:
         return self.get("/uapi/domestic-stock/v1/quotations/inquire-index-price", "FHPUP02100000",
                         {"FID_COND_MRKT_DIV_CODE": "U", "FID_INPUT_ISCD": index_code})
 
+    def index_daily(self, start: str, end: str, index_code: str = "2001") -> list[dict]:
+        """업종 지수 일봉(YYYYMMDD~YYYYMMDD, 최근 날짜부터). 종가 bstp_nmix_prpr = 최종거래일이면 옵션 최종결제가격."""
+        return self.get("/uapi/domestic-stock/v1/quotations/inquire-daily-indexchartprice", "FHKUP03500100",
+                        {"FID_COND_MRKT_DIV_CODE": "U", "FID_INPUT_ISCD": index_code, "FID_INPUT_DATE_1": start,
+                         "FID_INPUT_DATE_2": end, "FID_PERIOD_DIV_CODE": "D"}, output="output2")
+
     def futopt_price(self, code: str, market: str = "O") -> dict:
         """선물(market='F', 코드 예 A01612)·옵션(market='O', 위클리 포함 9자리 코드) 현재가."""
         return self.get("/uapi/domestic-futureoption/v1/quotations/inquire-price", "FHMIF10000000",
